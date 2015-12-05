@@ -1,0 +1,119 @@
+html
+    head
+        style.
+            #container1 {
+                height: 400px;
+                min-width: 310px;
+                max-width: 800px;
+                margin: 0 auto;
+            }
+        link(rel="stylesheet", href="#{staticURL}/styles/main.min.css")
+        link(rel="stylesheet", href="#{staticURL}/styles/card.css")
+        link(rel="stylesheet", href="#{staticURL}/styles/button.css")
+        script(src='http://ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js')
+        script(src='https://code.highcharts.com/maps/highmaps.js')
+        script(src='https://code.highcharts.com/maps/modules/data.js')
+        script(src='https://code.highcharts.com/mapdata/countries/us/us-all.js')
+        script(src='https://code.highcharts.com/highcharts.js')
+        script(src='https://code.highcharts.com/highcharts-3d.js')
+        script(src='https://code.highcharts.com/modules/exporting.js')
+        script(src='main.min.js')
+        script.
+            $(function () {
+                $.getJSON('https://www.highcharts.com/samples/data/jsonp.php?filename=us-population-density.json&callback=?', function (data) {
+                    // Make codes uppercase to match the map data
+                    $.each(data, function () {
+                        this.code = this.code.toUpperCase();
+                    });
+                    // Instanciate the map
+                    $('#container').highcharts('Map', {
+                        chart : {
+                            borderWidth : 1
+                        },
+                        title : {
+                            text : 'Trend Map'
+                        },
+                        credits: {
+                            enabled: false
+                        },
+                        legend: {
+                            enabled: false
+                        },
+                        mapNavigation: {
+                            enabled: true
+                        },
+                        colorAxis: {
+                            min: 1,
+                            type: 'logarithmic',
+                            minColor: '#EEEEFF',
+                            maxColor: '#000022',
+                            stops: [
+                                [0, '#EFEFFF'],
+                                [0.67, '#4444FF'],
+                                [1, '#000022']
+                            ]
+                        },
+                        series : [{
+                            animation: {
+                                duration: 1000
+                            },
+                            data : data,
+                            mapData: Highcharts.maps['countries/us/us-all'],
+                            joinBy: ['postal-code', 'code'],
+                            dataLabels: {
+                                enabled: true,
+                                color: 'white',
+                                format: '{point.code}'
+                            },
+                            name: 'Hits',
+                            tooltip: {
+                                pointFormat: '{point.code}: {point.value}/km²'
+                            }
+                        }]
+                    });
+                });
+            });
+            $(function () {
+                $('#container1').highcharts({
+                    chart: {
+                        type: 'column',
+                        margin: 75,
+                        options3d: {
+                            enabled: true,
+                            alpha: 10,
+                            beta: 25,
+                            depth: 70
+                        }
+                    },
+                    title: {
+                        text: 'Trending Stats'
+                    },
+                    credits: {
+                        enabled: false
+                    },
+                    plotOptions: {
+                        column: {
+                            depth: 25
+                        }
+                    },
+                    xAxis: {
+                        categories: Highcharts.getOptions().lang.shortMonths
+                    },
+                    yAxis: {
+                        title: {
+                            text: null
+                        }
+                    },
+                    series: [{
+                        name: 'Sales',
+                        data: [2, 3, null, 4, 0, 5, 1, 4, 6, 3, 0, 9]
+                    }]
+                });
+            });
+    body
+        div#wrap
+        include header
+        #container1(style='height: 400px')
+        br
+        #container(style='height: 400px; min-width: 500px; max-width: 800px; margin: 100px auto')
+        include footer
