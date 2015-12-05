@@ -9,11 +9,6 @@ var express = require('express'),
     Api = require("../../api"),
     r = require("../../lib/request"),
     request=require("request");
-var mongodb = require('mongodb');
-//We need to work with "MongoClient" interface in order to connect to a mongodb server.
-var MongoClient = mongodb.MongoClient;
-// Connection URL. This is where your mongodb server is running.
-var url = 'mongodb://localhost:27017/pyCloud';
 // ===
 var assert = require('assert');
 
@@ -22,8 +17,6 @@ var rpi=[0,0];
 var mysql = require("mysql");
 
 // First you need to create a connection to the db
-
-
 
 
 //GET Req
@@ -89,6 +82,13 @@ con.query('SELECT * FROM user WHERE sid=\''+ req.sessionID+'\'', function(err,re
         showlogin:true
       });
       break;
+    case "statistics":
+      res.status(200).render("statistics/statistics.jade", {
+        pageTitle: "ShortURL! - Stats",
+        showRegister: true,
+        showlogin:true
+      });
+      break;
     default:
       res.render("editor/dashboard.jade", {
         pageTitle: "ShortURL! - Dashboard",
@@ -116,427 +116,133 @@ router.post(['/', '/:action'], function(req, res, next) {
       console.log(inp[1]);
       if(inp[0] == "1"){
 
-        var startcontainer = function(db,rpiurl,userdoc,callback){
-      //get the container ID
+        console.log("--------------------------------------------------------------------------------------------------------");
+//begin 1
+      var con = mysql.createConnection({
+  host: "shorturlinstance.czgmbncumrav.us-west-1.rds.amazonaws.com",
+  port:3306,
+  user: "shorturl",
+  password: "password",
+  database: "shorturl"
+});
 
-      //Call kubernetes and start the container
-      var postData={
-          ip:req.ip
-      };
-    request.post({
-    uri:rpiurl,
-    headers:{'content-type': 'application/x-www-form-urlencoded'},
-    body:require('querystring').stringify(postData)
-    },function(err,resp,body){
-      if(!err){
-        var jsonObject = JSON.parse(body);
-        console.log(jsonObject);
-        db.collection('workspace').updateOne({ "uid":userdoc._id,"workspace":inp[1]}, { $set: { "running": true ,"conid":(jsonObject.ConID).trim()}} ,function(err, doc) {
-            assert.equal(err, null);
-            if (doc != null) {
-              console.log(doc);
-              //if(doc.status=)
-              //startcontainer(db,doc,function(){db.close();});
-              setTimeout(function() {
-              var loc = jsonObject.Location.trim();
-              res.redirect(""+loc);
-              res.end();
-              }, 5000);
-              
-            } else {
-               console.log(doc);
-              res.redirect("/users/login");
-            }
-        }); 
-        
-           }
-    });
-    }
+con.connect(function(err){
+  if(err){
+    console.log('Error connecting to Db');
+    return;
+  }
+});
 
-    var resumecontainer = function(db,rpiurl,userdoc,wsdoc,callback){
-      //get the container ID
 
-      //Call kubernetes and start the container
-      var postData={
-          ip:req.ip,
-          cid:wsdoc.conid
-      };
-    request.post({
-    uri:rpiurl,
-    headers:{'content-type': 'application/x-www-form-urlencoded'},
-    body:require('querystring').stringify(postData)
-    },function(err,resp,body){
-      if(!err){
-        var jsonObject = JSON.parse(body);
-        console.log(jsonObject);
-        db.collection('workspace').updateOne({ "uid":userdoc._id,"workspace":inp[1]}, { $set: { "running": true }} ,function(err, doc) {
-            assert.equal(err, null);
-            if (doc != null) {
-              //console.log(doc);
-              //if(doc.status=)
-              //startcontainer(db,doc,function(){db.close();});
-              setTimeout(function() {
-              var loc = jsonObject.Location.trim();
-              res.redirect(""+loc);
-              res.end();
-              }, 5000);
-              
-            } else {
-               console.log(doc);
-              res.redirect("/editor/dashboard");
-            }
-        }); 
-        
-           }
-    });
-    }
-      
-  var findWorkspace=function(db,userdoc,callback){
-        var found=0;
-        var rpiurl="";
-        console.log(userdoc._id);
-        var cursor =db.collection('workspace').findOne({ "uid":userdoc._id,"workspace":inp[1],"running":false},function(err, doc) {
-            assert.equal(err, null);
-            if (doc != null) {
-              console.log(doc);
-              //if(doc.status=)
-              if(doc.conid==""){
-                if(doc.storedon==1)
-                  rpiurl="http://192.168.10.4:3002/"
-                else
-                  rpiurl="http://192.168.10.102:3002/"
-                startcontainer(db,rpiurl,userdoc,function(){db.close();});
-              }
-              else{
-                if(doc.storedon==1)
-                  rpiurl="http://192.168.10.4:3002/resume"
-                else
-                  rpiurl="http://192.168.10.102:3002/resume"
-                resumecontainer(db,rpiurl,userdoc,doc,function(){db.close();});
-              }
-
-            } else {
-               console.log(doc);
-              res.redirect("/editor/dashboard");
-            }
-        }); 
-      } 
-
-   var findUser = function(db, callback) {
-          var found=0;
-    console.log(req.sessionID);
-   var cursor =db.collection('users').findOne( { "sid":req.sessionID} ,function(err, doc) {
-      assert.equal(err, null);
-      if (doc != null) {
-        console.log(doc);
-         findWorkspace(db,doc,function(){db.close();});
-      } else {
-        console.log("user not logged in");
-        res.redirect("/users/login");
-        res.end();
+con.query('SELECT * FROM user WHERE sid=\''+ req.sessionID+'\'', function(err,result){
+  
+  if(result=="") {res.redirect("/users/login");}
+  else 
+    {console.log(result[0].ID);
+      {
+              con.query("SELECT * FROM clicktrend WHERE surlid ="+inp[1],function(err,resul){
+                var data=[];
+                data.push(resul[0].jan);
+                data.push(resul[0].feb);
+                data.push(resul[0].mar);
+                data.push(resul[0].apr);
+                data.push(resul[0].may);
+                data.push(resul[0].jun);
+                data.push(resul[0].jul);
+                data.push(resul[0].aug);
+                data.push(resul[0].sep);
+                data.push(resul[0].oct);
+                data.push(resul[0].nov);
+                data.push(resul[0].dece);
+                console.log(data);
+          //res.write("jks");
+          res.render("editor/statistics.jade", {
+            dat:data,
+            pageTitle: "ShortURL! - Stats",
+            showRegister: true,
+            showlogin:false
+          });
+          res.end();
+          con.end(function(err) {
+          });
+        });
+          
       }
-      //res.redirect('dashboard');
-   });
-   
-};
+    }
+  //console.log('Last insert ID:', res.insertId);
+});
 
-        MongoClient.connect(url, function (err, db) {
-        if (err) {
-          console.log('Unable to connect to the mongoDB server. Error:', err);
-        } else {
-    //HURRAY!! We are connected. 
-          console.log('Connection established to', url);
-
-    // Get the documents collection
-    
-          findUser(db,function(){db.close();});
-        
-        }
-      });
-
+//end 1
   }
   else if(inp[0] == "2"){
 
-        var stopcontainer = function(db,rpiurl,userdoc,wsdoc,callback){
-      //get the container ID
+      var con = mysql.createConnection({
+  host: "shorturlinstance.czgmbncumrav.us-west-1.rds.amazonaws.com",
+  port:3306,
+  user: "shorturl",
+  password: "password",
+  database: "shorturl"
+});
 
-      //Call kubernetes and start the container
-      var postData={
-          cid:wsdoc.conid
-      };
-    request.post({
-    uri:rpiurl,
-    headers:{'content-type': 'application/x-www-form-urlencoded'},
-    body:require('querystring').stringify(postData)
-    },function(err,resp,body){
-      if(!err){
-        var jsonObject = JSON.parse(body);
-        console.log(jsonObject);
-        if(jsonObject.status=="stopped")
-        db.collection('workspace').updateOne({ "uid":userdoc._id,"workspace":inp[1]}, { $set: { "running": false}} ,function(err, doc) {
-            assert.equal(err, null);
-            if (doc != null) {
-              console.log(doc);
-              //if(doc.status=)
-              //startcontainer(db,doc,function(){db.close();});
-              
-                res.redirect('/editor/dashboard');
-                res.end();
-             
-            } else {
-               console.log(doc);
-              res.redirect("/editor/dashboard");
-            }
-        }); 
-        
-           }
-    });
-    }
-      
-  var findWorkspace=function(db,userdoc,callback){
-        var found=0;
-        var rpiurl="";
-        console.log(userdoc._id);
-        var cursor =db.collection('workspace').findOne({ "uid":userdoc._id,"workspace":inp[1],"running":true},function(err, doc) {
-            assert.equal(err, null);
-            if (doc != null) {
-              console.log(doc);
-              //if(doc.status=)
-
-              if(doc.storedon==1)
-                rpiurl ="http://192.168.10.4:3002/stop"
-              else
-                rpiurl="http://192.168.10.102:3002/stop"
-
-                stopcontainer(db,rpiurl,userdoc,doc,function(){db.close();});
-
-
-            } else {
-               console.log(doc);
-              res.redirect("/editor/dashboard");
-            }
-        }); 
-      } 
-
-   var findUser = function(db, callback) {
-          var found=0;
-    console.log(req.sessionID);
-   var cursor =db.collection('users').findOne({ "sid":req.sessionID} ,function(err, doc) {
-      assert.equal(err, null);
-      if (doc != null) {
-        console.log(doc);
-         findWorkspace(db,doc,function(){db.close();});
-      } else {
-        console.log("user not logged in");
-        res.redirect("/users/login");
-        res.end();
-      }
-      //res.redirect('dashboard');
-   });
-   
-};
-
-        MongoClient.connect(url, function (err, db) {
-        if (err) {
-          console.log('Unable to connect to the mongoDB server. Error:', err);
-        } else {
-    //HURRAY!! We are connected. :)
-          console.log('Connection established to', url);
-
-    // Get the documents collection
-    
-          findUser(db,function(){db.close();});
-        
-        }
-      });
-
+con.connect(function(err){
+  if(err){
+    console.log('Error connecting to Db');
+    return;
   }
-  else if(inp[0] == "3"){
+});
 
 
-        var deletecontainer = function(db,rpiurl,userdoc,wsdoc,callback){
-      //get the container ID
+con.query('SELECT * FROM user WHERE sid=\''+ req.sessionID+'\'', function(err,result){
+  
+  if(result=="") {res.redirect("/users/login");}
+  else 
+    {console.log(result[0].ID);
+      {
 
-      //Call kubernetes and start the container
-      var postData={
-          cid:wsdoc.conid
-      };
-    request.post({
-    uri:rpiurl,
-    headers:{'content-type': 'application/x-www-form-urlencoded'},
-    body:require('querystring').stringify(postData)
-    },function(err,resp,body){
-      if(!err){
-        var jsonObject = JSON.parse(body);
-        console.log(jsonObject);
-        if(jsonObject.status=="deleted")
-        db.collection('workspace').deleteOne({ "uid":userdoc._id,"workspace":inp[1]},function(err, doc) {
-            assert.equal(err, null);
-            if (doc != null) {
-              //console.log(doc);
-              //if(doc.status=)
-              //startcontainer(db,doc,function(){db.close();});
-              
-                res.redirect('/editor/dashboard');
-                res.end();
-             
-            } else {
-               console.log(doc);
-              res.redirect("/editor/dashboard");
-            }
-        }); 
-        
-           }
-    });
-    }
-      
-  var findWorkspace=function(db,userdoc,callback){
-        var found=0;
-        var rpiurl="";
-        console.log(userdoc._id);
-        var cursor =db.collection('workspace').findOne({ "uid":userdoc._id,"workspace":inp[1],"running":true},function(err, doc) {
-            assert.equal(err, null);
-            if (doc != null) {
-              console.log(doc);
-              //if(doc.status=)
-              if(doc.storedon==1)
-                rpiurl ="http://192.168.10.4:3002/delete"
-              else
-                rpiurl="http://192.168.10.102:3002/delete"
-              deletecontainer(db,rpiurl,userdoc,doc,function(){db.close();});
-
-
-            } else {
-               console.log(doc);
-              res.redirect("/editor/dashboard");
-            }
-        }); 
-      } 
-
-   var findUser = function(db, callback) {
-          var found=0;
-    console.log(req.sessionID);
-   var cursor =db.collection('users').findOne( { "sid":req.sessionID} ,function(err, doc) {
-      assert.equal(err, null);
-      if (doc != null) {
-        console.log(doc);
-         findWorkspace(db,doc,function(){db.close();});
-      } else {
-        console.log("user not logged in");
-        res.redirect("/users/login");
-        res.end();
+        con.query(
+  'DELETE FROM shorturl WHERE ID = ?',
+  [inp[1]],
+  function (err, result) {
+    if (err) throw err;
+    con.end(function(err) {
+          });
+    console.log('Deleted ' + result.affectedRows + ' rows');
+    res.redirect("/editor/dashboard");
+    res.end();
+  }
+);
+        //       con.query("SELECT * FROM clicktrend WHERE surlid ="+inp[1],function(err,resul){
+        //         var data=[];
+        //         data.push(resul[0].jan);
+        //         data.push(resul[0].feb);
+        //         data.push(resul[0].mar);
+        //         data.push(resul[0].apr);
+        //         data.push(resul[0].may);
+        //         data.push(resul[0].jun);
+        //         data.push(resul[0].jul);
+        //         data.push(resul[0].aug);
+        //         data.push(resul[0].sep);
+        //         data.push(resul[0].oct);
+        //         data.push(resul[0].nov);
+        //         data.push(resul[0].dece);
+        //         console.log(data);
+        //   //res.write("jks");
+        //   res.render("editor/statistics.jade", {
+        //     dat:data,
+        //     pageTitle: "ShortURL! - Stats",
+        //     showRegister: true,
+        //     showlogin:false
+        //   });
+        //   res.end();
+        //   con.end(function(err) {
+        //   });
+        // });
+          
       }
-      //res.redirect('dashboard');
-   });
-   
-};
-
-        MongoClient.connect(url, function (err, db) {
-        if (err) {
-          console.log('Unable to connect to the mongoDB server. Error:', err);
-        } else {
-    //HURRAY!! We are connected. :)
-          console.log('Connection established to', url);
-
-    // Get the documents collection
-    
-          findUser(db,function(){db.close();});
-        
-        }
-      });
-
-  }else if(inp[0] == "4"){
-    var opencontainer = function(db,rpiurl,userdoc,wsdoc,callback){
-      //get the container ID
-
-      //Call kubernetes and start the container
-      var postData={
-          ip:req.ip,
-          cid:wsdoc.conid
-      };
-    request.post({
-    uri:rpiurl,
-    headers:{'content-type': 'application/x-www-form-urlencoded'},
-    body:require('querystring').stringify(postData)
-    },function(err,resp,body){
-      if(!err){
-        var jsonObject = JSON.parse(body);
-        console.log(jsonObject);
-        db.collection('workspace').updateOne({ "uid":userdoc._id,"workspace":inp[1]}, { $set: { "running": true }} ,function(err, doc) {
-            assert.equal(err, null);
-            if (doc != null) {
-              //console.log(doc);
-              //if(doc.status=)
-              //startcontainer(db,doc,function(){db.close();});
-              setTimeout(function() {
-              var loc = jsonObject.Location.trim();
-              res.redirect(""+loc);
-              res.end();
-              }, 5000);
-              
-            } else {
-               console.log(doc);
-              res.redirect("/editor/dashboard");
-            }
-        }); 
-        
-           }
-    });
     }
-      
-  var findWorkspace=function(db,userdoc,callback){
-        var found=0;
-        var rpiurl="";
-        console.log(userdoc._id);
-        var cursor =db.collection('workspace').findOne({ "uid":userdoc._id,"workspace":inp[1],"running":true},function(err, doc) {
-            assert.equal(err, null);
-            if (doc != null) {
-              console.log(doc);
-              //if(doc.status=)
-              
-                if(doc.storedon==1)
-                  rpiurl="http://192.168.10.4:3002/open"
-                else
-                  rpiurl="http://192.168.10.102:3002/open"
-                opencontainer(db,rpiurl,userdoc,doc,function(){db.close();});
-            } else {
-               console.log(doc);
-              res.redirect("/editor/dashboard");
-            }
-        }); 
-      } 
+  //console.log('Last insert ID:', res.insertId);
+});
 
-   var findUser = function(db, callback) {
-          var found=0;
-    console.log(req.sessionID);
-   var cursor =db.collection('users').findOne( { "sid":req.sessionID} ,function(err, doc) {
-      assert.equal(err, null);
-      if (doc != null) {
-        console.log(doc);
-         findWorkspace(db,doc,function(){db.close();});
-      } else {
-        console.log("user not logged in");
-        res.redirect("/users/login");
-        res.end();
-      }
-      //res.redirect('dashboard');
-   });
-   
-};
-
-        MongoClient.connect(url, function (err, db) {
-        if (err) {
-          console.log('Unable to connect to the mongoDB server. Error:', err);
-        } else {
-    //HURRAY!! We are connected. :)
-          console.log('Connection established to', url);
-
-    // Get the documents collection
-    
-          findUser(db,function(){db.close();});
-        
-        }
-      });
   }
 
 

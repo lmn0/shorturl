@@ -8,11 +8,7 @@ var express = require('express'),
     router = express.Router(),
     Api = require("../../api"),
     r = require("../../lib/request");
-var mongodb = require('mongodb');
-//We need to work with "MongoClient" interface in order to connect to a mongodb server.
-var MongoClient = mongodb.MongoClient;
-// Connection URL. This is where your mongodb server is running.
-var url = 'mongodb://localhost:27017/pyCloud';
+
 var assert = require('assert');
 // ===
 
@@ -102,19 +98,6 @@ router.get(['/', '/:action'], function(req, res, next) {
     //WRITE THE LOGIN LOGIC HERE !
 
 // Use connect method to connect to the Server
-MongoClient.connect(url, function (err, db) {
-  if (err) {
-    console.log('Unable to connect to the mongoDB server. Error:', err);
-  } else {
-    //HURRAY!! We are connected. :)
-    console.log('Connection established to', url);
-
-    // Get the documents collection
-    changeSession(db,function(){db.close();});
-
-  }
-  
-});
       break;
     default:
       res.status(200).render("authentication/login.jade", {

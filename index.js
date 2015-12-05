@@ -4,7 +4,7 @@ var express = require("express"),
 	morgan = require("morgan");
 var session = require('express-session');
 var cookieParser = require('cookie-parser');
-
+var flash = require('express-flash');
 
 // ===
 
@@ -21,7 +21,7 @@ app.use(session({
   }
 }));
 
-
+app.use(flash());
 var App = {
 	config: require("./config.json"),
 	build_type: "--dev",

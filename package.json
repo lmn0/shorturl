@@ -18,15 +18,24 @@
   "dependencies": {
     "async": "^1.4.2",
     "body-parser": "^1.13.3",
-    "express": "^4.12.4",
+    "express": "^4.13.3",
     "jade": "^1.11.0",
     "moment": "^2.10.6",
     "morgan": "^1.6.1",
     "opentok": "~2.3.0",
-    "request": "^2.60.0",
+    "request": "^2.67.0",
     "open": "0.0.5",
     "cookie-parser":"*",
-    "express-session":"*"
+    "express-session":"*",
+    "aws-sdk":"2.2.21",
+    "express-flash":"0.0.2",
+    "mongodb":"2.0.48",
+    "mysql":"2.9.0",
+    "node-mysql":"0.4.2",
+    "opentok":"2.3.0",
+    "semantic-ui-card":"2.1.6",
+    "semantic-ui-css":"2.1.6",
+    "session":"0.1.0"
   },
   "devDependencies": {}
 }

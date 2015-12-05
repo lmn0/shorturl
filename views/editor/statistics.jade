@@ -1,65 +1,58 @@
-html
-    head
-        style.
-            #container1 {
-                height: 400px;
-                min-width: 310px;
-                max-width: 800px;
-                margin: 10px 0 0 100px;
-            }
-        link(rel="stylesheet", href="#{staticURL}/styles/main.min.css")
-        link(rel="stylesheet", href="#{staticURL}/styles/card.css")
-        link(rel="stylesheet", href="#{staticURL}/styles/button.css")
-        script(src='http://ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js')
-        script(src='https://code.highcharts.com/maps/highmaps.js')
-        script(src='https://code.highcharts.com/maps/modules/data.js')
-        script(src='https://code.highcharts.com/mapdata/countries/us/us-all.js')
-        script(src='https://code.highcharts.com/highcharts.js')
-        script(src='https://code.highcharts.com/highcharts-3d.js')
-        script(src='https://code.highcharts.com/modules/exporting.js')
-        script(src='main.min.js')
-        script.
-            $(function () {
-                $('#container1').highcharts({
-                    chart: {
-                        type: 'column',
-                        margin: 75,
-                        options3d: {
-                            enabled: true,
-                            alpha: 10,
-                            beta: 25,
-                            depth: 70
-                        }
-                    },
+extends ../layout.jade
+block main
+    div.login
+        block content
+            div.center
+                div#container1(style='height: 400px')
+
+block post_wrap
+    script.
+        console.log("Do like this if you want to do inline js on this particular page");
+        console.log("Or do as below to include js files only on this page")
+    script(src='http://ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js')
+    script(src='https://code.highcharts.com/maps/highmaps.js')
+    script(src='https://code.highcharts.com/maps/modules/data.js')
+    script(src='https://code.highcharts.com/mapdata/countries/us/us-all.js')
+    script(src='https://code.highcharts.com/highcharts.js')
+    script(src='https://code.highcharts.com/highcharts-3d.js')
+    script(src='https://code.highcharts.com/modules/exporting.js')
+    script.
+        $(function () {
+            console.log(#{dat});
+            $('#container1').highcharts({
+                chart: {
+                    type: 'column',
+                    margin: 75,
+                    options3d: {
+                        enabled: true,
+                        alpha: 10,
+                        beta: 25,
+                        depth: 70
+                    }
+                },
+                title: {
+                    text: 'Trending Stats'
+                },
+                credits: {
+                    enabled: false
+                },
+                plotOptions: {
+                    column: {
+                        depth: 25
+                    }
+                },
+                xAxis: {
+                    categories: Highcharts.getOptions().lang.shortMonths
+                },
+                yAxis: {
+                    allowDecimals: false,
                     title: {
-                        text: 'Trending Stats'
-                    },
-                    credits: {
-                        enabled: false
-                    },
-                    plotOptions: {
-                        column: {
-                            depth: 25
-                        }
-                    },
-                    xAxis: {
-                        categories: Highcharts.getOptions().lang.shortMonths
-                    },
-                    yAxis: {
-                        allowDecimals: false,
-                        title: {
-                            text: null
-                        }
-                    },
-                    series: [{
-                        name: 'Hits',
-                        data: [2, 3, null, 4, 0, 5, 1, 4, 6, 3, 0, 9]
-                    }]
-                });
+                        text: null
+                    }
+                },
+                series: [{
+                    name: 'Hits',
+                    data: [#{dat}]
+                }]
             });
-    body
-        div#wrap
-        include header
-        div#container1(style='height: 400px')
-        div#main
-        include footer
+        });
