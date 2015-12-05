@@ -26,7 +26,7 @@ var Authentication = {
       default:
         res.status(400)
            .render("error", {
-              pageTitle: "pyCloud! - Error",
+              pageTitle: "ShortURL! - Error",
               errCode: 400,
               errMsg: "Invalid request"
             });
@@ -42,7 +42,7 @@ var Authentication = {
       default:
         res.status(400)
            .render("error", {
-              pageTitle: "pyCloud! - Error",
+              pageTitle: "ShortURL! - Error",
               errCode: 400,
               errMsg: "Invalid request"
             });
@@ -64,21 +64,21 @@ router.get(['/', '/:action'], function(req, res, next) {
       break;
     case "notfound":
     res.status(200).render("authentication/notfound.jade", {
-        pageTitle: "pyCloud! - Login",
+        pageTitle: "ShortURL! - Login",
         showRegister: true,
         showlogin:true
       });
       break;
     case "createaccount":
     res.status(200).render("authentication/createaccount.jade", {
-        pageTitle: "pyCloud! - Login",
+        pageTitle: "ShortURL! - Login",
         showRegister: true,
         showlogin:true
       });
       break;
     case "alreadyexist":
     res.status(200).render("authentication/alreadyexist.jade", {
-        pageTitle: "pyCloud! - Login",
+        pageTitle: "ShortURL! - Login",
         showRegister: true,
         showlogin:true
       });
@@ -92,7 +92,7 @@ router.get(['/', '/:action'], function(req, res, next) {
       }, function(err, results) {
       console.log("results");
       res.status(200).render("authentication/login.jade", {
-        pageTitle: "pyCloud! - Login",
+        pageTitle: "ShortURL! - Login",
         showRegister: true,
         showlogin:true
       });
@@ -118,7 +118,7 @@ MongoClient.connect(url, function (err, db) {
       break;
     default:
       res.status(200).render("authentication/login.jade", {
-        pageTitle: "pyCloud! - Login",
+        pageTitle: "ShortURL! - Login",
         showRegister: false,
         showlogin:true
       });
@@ -144,7 +144,7 @@ router.post(['/', '/:action'], function(req, res, next) {
   } else {
     res.status(404)
        .render("404.jade", {
-          pageTitle: "pyCloud!"
+          pageTitle: "ShortURL!"
     });
     return next();
   }

@@ -16,7 +16,8 @@ var MongoClient = mongodb.MongoClient;
 var url = 'mongodb://localhost:27017/pyCloud';
 // ===
 var assert = require('assert');
-
+var AWS = require('aws-sdk'); 
+var s3 = new AWS.S3(); 
 
 //GET Req
 router.get(['/', '/:action'], function(req, res, next) {
@@ -45,6 +46,23 @@ router.post(['/', '/:action'], function(req, res, next) {
     case "shorten":
       //console.log("shorten");
      
+
+
+  var params = {Bucket: 'urlstore', Key: 'mykey', Body: 'Hello!'};
+
+  s3.putObject(params, function(err, data) {
+
+      if (err)       
+
+          console.log(err)     
+
+      else       console.log("Successfully uploaded data to myBucket/myKey");   
+
+   });
+
+
+
+
       
       console.log(new Buffer("http://www.hacksparrow.com/base64-encoding-decoding-in-node-js.html").toString('base64'));
       

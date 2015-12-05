@@ -8,30 +8,22 @@ block main
 						li
 							h3.divider Workspace Dashboard
 							.ui.cards
-								each val,index in workspaces
+								each val,index in urls
 									.card
 										.content
-											.header(name="wsname" value=val.workspace) #{val.workspace}
+											.header(name="wsname" value=val.urlname) #{val.urlname}
 											.description
-											|	#{val.description}
-											br
-											|	#{val.status}
+											|	#{val.shorturl}
 										.extra.content
-											if val.running
-												.ui.three.buttons
-													button(class="ui basic green button" type="submit" name="butt" formtarget="_blank" value=("4+"+val.workspace)) Open
-													button(class="ui basic blue button" type="submit" name="butt" value=("2+"+val.workspace)) Stop
-													button(class="ui basic red button" type="submit" name="butt" value=("3+"+val.workspace)) Delete
-											else
 												.ui.two.buttons
-													button(class="ui basic green button" type="submit" name="butt" formtarget="_blank" value=("1+"+val.workspace)) Start
-													button(class="ui basic red button" type="submit" name="butt" value=("3+"+val.workspace)) Delete
+													button(class="ui basic green button" type="submit" name="butt" formtarget="_blank" value=("1+"+val.ID)) Statistics
+													button(class="ui basic red button" type="submit" name="butt" value=("2+"+val.ID)) Delete
 								.card
 										.content
 											.header 
-												input.input-block-level(name="workspacename", placeholder="Workspace Name" style="width:250px;") 
+												input.input-block-level(name="urlname", placeholder="URL Name" style="width:250px;") 
 											.description
-												input.input-block-level(name="descrip", placeholder="Description")
+												input.input-block-level(name="bigurl", placeholder="URL")
 										.ui.one.buttons
 												button(class="ui basic green button" type="submit" name="butt" value="create") +	
 

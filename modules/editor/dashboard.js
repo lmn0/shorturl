@@ -19,6 +19,13 @@ var assert = require('assert');
 
 var rpi=[0,0];
 
+var mysql = require("mysql");
+
+// First you need to create a connection to the db
+
+
+
+
 //GET Req
 router.get(['/', '/:action'], function(req, res, next) {
   var action = req.params.action;
@@ -26,73 +33,65 @@ router.get(['/', '/:action'], function(req, res, next) {
   console.log(req.ip);
   switch(action) {
     case "dashboard":
-  var wspaces=[];
-    var findWorkspaces=function(db,userdoc,callback){
-        var found=0;
-        console.log(userdoc._id);
-        var cursor =db.collection('workspace').find({ "uid":userdoc._id},{_id:0,"uid":false}).toArray(function(err,result){
-          console.log(result);
+    console.log("in dashboard");
+
+  var con = mysql.createConnection({
+  host: "shorturlinstance.czgmbncumrav.us-west-1.rds.amazonaws.com",
+  port:3306,
+  user: "shorturl",
+  password: "password",
+  database: "shorturl"
+});
+
+con.connect(function(err){
+  if(err){
+    console.log('Error connecting to Db');
+    return;
+  }
+});
+
+
+con.query('SELECT * FROM user WHERE sid=\''+ req.sessionID+'\'', function(err,result){
+  
+  if(result=="") {res.redirect("/users/login");}
+  else 
+    {console.log(result[0].ID);
+      {
+
+        con.query("SELECT * FROM shorturl WHERE userid ='"+result[0].ID+"'",function(err,result){
           res.status(200).render("editor/dashboard.jade", {
-          workspaces: result,
-          pageTitle: "pyCloud! - Dashboard",
-          showRegister: true,
-          showlogin:false
+            urls:result,
+            pageTitle: "ShortURL! - Dashboard",
+            showRegister: true,
+            showlogin:false
+          });
         });
-        }); 
-      } 
-
-
-        var findUser = function(db, callback) {
-          var found=0;
-    console.log(req.sessionID);
-   var cursor =db.collection('users').findOne( { "sid":req.sessionID} ,function(err, doc) {
-      assert.equal(err, null);
-      if (doc != null) {
-        console.log(doc);
-         findWorkspaces(db,doc,function(){db.close();});
-      } else {
-        console.log("user not logged in");
-        res.redirect("/users/login");
-        res.end();
       }
-      //res.redirect('dashboard');
-   });
-   
-};
+    }
+  //console.log('Last insert ID:', res.insertId);
+});
 
-    MongoClient.connect(url, function (err, db) {
-        if (err) {
-          console.log('Unable to connect to the mongoDB server. Error:', err);
-        } else {
-    //HURRAY!! We are connected. :)
-          console.log('Connection established to', url);
 
-    // Get the documents collection
-    
-          findUser(db,function(){db.close();});
-
-        }
-      });
 
       
       break;
     case "workspacepresent":
       res.status(200).render("editor/workspacepresent.jade", {
-        pageTitle: "pyCloud! - Dashboard",
+        pageTitle: "ShortURL! - Dashboard",
         showRegister: true,
         showlogin:false
       });
       break;
     case "logout":
       res.status(200).render("authentication/alreadyexist.jade", {
-        pageTitle: "pyCloud! - Login",
+        pageTitle: "ShortURL! - Login",
         showRegister: true,
         showlogin:true
       });
       break;
     default:
       res.render("editor/dashboard.jade", {
-        pageTitle: "pyCloud! - Dashboard",
+        pageTitle: "ShortURL! - Dashboard",
         showRegister: false,
         showlogin:false
       });
@@ -245,7 +244,7 @@ router.post(['/', '/:action'], function(req, res, next) {
         if (err) {
           console.log('Unable to connect to the mongoDB server. Error:', err);
         } else {
-    //HURRAY!! We are connected. :)
+    //HURRAY!! We are connected. 
           console.log('Connection established to', url);
 
     // Get the documents collection
@@ -546,68 +545,67 @@ router.post(['/', '/:action'], function(req, res, next) {
       res.redirect("/editor/dashboard");
       res.end();
     }else{
-    var addWorkspace=function(db,user,callback){
-      var storedon = 0;
-      if(rpi[0]<=rpi[1]){
-        storedon=1;rpi[0]=rpi[0]+1;}
-      else{
-        storedon=2;rpi[1]=rpi[1]+1;}
 
-      var cursor =db.collection('workspace').insertOne( { "uid": user._id,"workspace":req.body.workspacename,"description":req.body.descrip,"running":false,"conid":"","storedon":storedon},function(err, result) {
-      assert.equal(err, null);
-      res.redirect('/editor/dashboard');
-      res.end();
-   });
-    }
+      var con = mysql.createConnection({
+  host: "shorturlinstance.czgmbncumrav.us-west-1.rds.amazonaws.com",
+  port:3306,
+  user: "shorturl",
+  password: "password",
+  database: "shorturl"
+});
 
-      var findWorkspace=function(db,userdoc,callback){
-        var found=0;
-        console.log(userdoc._id);
-        var cursor =db.collection('workspace').findOne({ "uid":userdoc._id,"workspace":req.body.workspacename},function(err, doc) {
-            assert.equal(err, null);
-            if (doc != null) {
-              console.log(doc);
-              res.redirect("/editor/dashboard");
-            } else {
-              console.log(doc);
-              addWorkspace(db,userdoc,function(){db.close();});
-            }
-        }); 
-      } 
-      //res.redirect('dashboard');
-   
-      
-        var findUser = function(db, callback) {
-          var found=0;
-    console.log(req.sessionID);
-   var cursor =db.collection('users').findOne( { "sid":req.sessionID} ,function(err, doc) {
-      assert.equal(err, null);
-      if (doc != null) {
-        console.log(doc);
-         findWorkspace(db,doc,function(){db.close();});
-      } else {
-        console.log("user not logged in");
-        res.redirect("/users/login");
-        res.end();
-      }
-      //res.redirect('dashboard');
-   });
-   
-};
+con.connect(function(err){
+  if(err){
+    console.log('Error connecting to Db');
+    return;
+  }
+});
 
-        MongoClient.connect(url, function (err, db) {
-        if (err) {
-          console.log('Unable to connect to the mongoDB server. Error:', err);
-        } else {
-    //HURRAY!! We are connected. :)
-          console.log('Connection established to', url);
 
-    // Get the documents collection
-    
-          findUser(db,function(){db.close();});
+con.query('SELECT * FROM user WHERE sid=\''+ req.sessionID+'\'', function(err,result){
+  
+  if(result=="") {res.redirect("/users/login");}
+  else 
+    {console.log(result[0].ID);
+      {
 
+         var postData={
+          userid:result[0].ID,
+          urlname:req.body.urlname,
+          url:req.body.bigurl
+          };
+    request.post({
+    uri:"http://cpbal-149790031.us-west-1.elb.amazonaws.com:80/makeshort",
+    headers:{'content-type': 'application/x-www-form-urlencoded'},
+    body:require('querystring').stringify(postData)
+    },function(err,resp,body){
+
+        if(err==null){
+          console.log(resp);
+          var jsonObject = JSON.parse(body);
+          console.log(jsonObject);
+           if(jsonObject.status==true)
+           {
+              con.query("SELECT * FROM shorturl WHERE userid ='"+result[0].ID+"'",function(err,result){
+
+          res.status(200).render("editor/dashboard.jade", {
+            urls:result,
+            pageTitle: "ShortURL! - Dashboard",
+            showRegister: true,
+            showlogin:false
+          });
+        });
+           }
         }
-      });}
+    });
+
+        
+      }
+    }
+  //console.log('Last insert ID:', res.insertId);
+});
+
+      }
 
       break;
 

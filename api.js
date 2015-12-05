@@ -10,54 +10,56 @@ var url = 'mongodb://localhost:27017/pyCloud';
 var assert = require('assert');
 
 
+
+var mysql = require("mysql");
+
+// First you need to create a connection to the db
+
+
+
 var Api = {
   login: function(req, res, cb) {
-
-  var changeSession=function(db, callback) {
-   db.collection('users').updateOne(
-      { "email" : req.body.email,"password":req.body.password },
-      {
-        $set: { "sid": req.sessionID }
-      }, function(err, results) {
-      console.log(results);
-      res.redirect('/editor/dashboard');
-      res.end();
-   });
-};
-
-  var findUser = function(db, callback) {
-    console.log(req.body.email);
-    console.log(req.body.password);
-   var cursor =db.collection('users').findOne( { "email": req.body.email,"password":req.body.password} ,function(err, doc) {
-      assert.equal(err, null);
-      if (doc != null) {
-        console.log(doc);
-         changeSession(db,function(){db.close();});
-      } else {
-        console.log(doc);
-         res.redirect('notfound');
-         res.end();
-      }
-      //res.redirect('dashboard');
-   });
-};
-    
-    //WRITE THE LOGIN LOGIC HERE !
-
-// Use connect method to connect to the Server
-MongoClient.connect(url, function (err, db) {
-  if (err) {
-    console.log('Unable to connect to the mongoDB server. Error:', err);
-  } else {
-    //HURRAY!! We are connected. :)
-    console.log('Connection established to', url);
-
-    // Get the documents collection
-    findUser(db,function(){db.close();});
-
-  }
-  
+    var con = mysql.createConnection({
+  host: "shorturlinstance.czgmbncumrav.us-west-1.rds.amazonaws.com",
+  port:3306,
+  user: "shorturl",
+  password: "password",
+  database: "shorturl"
 });
+
+
+con.connect(function(err){
+  if(err){
+    console.log('Error connecting to Db');
+    return;
+  }
+});
+
+
+var user = {username: req.body.email, password: req.body.password};
+console.log(req.body.email);
+console.log(req.body.password);
+con.query('SELECT * FROM user WHERE username=\''+req.body.email+'\' and password=\''+req.body.password+'\'', function(err,result){
+  console.log(result);
+  if(err) {res.redirect("/users/login");}
+  else {
+    if(result!="")
+    con.query(
+  'UPDATE user SET sid = ? Where username = ? and password=?',
+  [req.sessionID, req.body.email,req.body.password],
+  function (err, result) {
+    if (err) throw err;
+    console.log('Changed ' + result.changedRows + ' rows');
+    res.redirect("/editor/dashboard");
+    con.end(function(err) {
+    });
+  }
+  );
+  else res.redirect("/users/login");
+  }
+  console.log('Last insert ID:', res.insertId);
+});
+
 
 
 
@@ -82,44 +84,32 @@ MongoClient.connect(url, function (err, db) {
 },
 
 createaccount:function(req,res,cb){
-
-    var addUser = function(db, callback) {
-   var cursor =db.collection('users').insertOne( { "email": req.body.email,"password":req.body.password,"sid":req.sessionID},function(err, result) {
-      assert.equal(err, null);
-      console.log(result);
-      res.redirect('/editor/dashboard');
-      res.end();
-   });
-};
-
-var findUser = function(db, callback) {
-    console.log(req.body.email);
-   var cursor =db.collection('users').findOne( { "email": req.body.email} ,function(err, doc) {
-      assert.equal(err, null);
-      if (doc != null) {
-        console.log(doc);
-         res.redirect('/users/alreadyexist');
-         res.end();
-      } else {
-        console.log(doc);
-        addUser(db,function(){db.close();})
-      }
-      //res.redirect('dashboard');
-   });
-};
-
-  MongoClient.connect(url, function (err, db) {
-  if (err) {
-    console.log('Unable to connect to the mongoDB server. Error:', err);
-  } else {
-    //HURRAY!! We are connected. :)
-    console.log('Connection established to', url);
-
-    // Get the documents collection
-    findUser(db,function(){db.close();});
-  }
-  
+  var con = mysql.createConnection({
+  host: "shorturlinstance.czgmbncumrav.us-west-1.rds.amazonaws.com",
+  port:3306,
+  user: "shorturl",
+  password: "password",
+  database: "shorturl"
 });
+
+
+con.connect(function(err){
+  if(err){
+    console.log('Error connecting to Db');
+    return;
+  }
+});
+
+var user = { username: req.body.email, password: req.body.password,sid:req.sessionID };
+con.query('INSERT INTO user SET ?', user, function(err,result){
+  if(err) {res.redirect("/users/alreadyexist");}
+  else res.redirect("/editor/dashboard");
+  console.log('Last insert ID:', res.insertId);
+});
+
+con.end(function(err) {
+});
+
 }
 }
 
